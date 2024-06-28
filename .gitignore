@@ -5,4 +5,7 @@
 target/
 test/
 inputs/
+outputs/
+scores/
+tasks/
 input
