@@ -24,29 +24,75 @@ public class Main {
     static final int maxSpaceship = 25;
     static final int max3d = 12;
     public static void main(String[] args) throws IOException, InterruptedException {
-        //load("3d", 1, max3d);
+        // load("3d", 1, max3d);
+        // load_task("3d");
+        // load_task("efficiency");
         // load_task("lambdaman");
         // load_task("spaceship");
-        // solve("lambdaman", 1, 5);
-        // solve("spaceship", 1, 10);
-        //load("spaceship", 1, 1);
-       // load("lambdaman", 9, 21);
+        // load_task("index");
+        // solve("lambdaman", 11, 20);
+        // solve("spaceship", 21, 21);
+        // load("spaceship", 22, maxSpaceship);
+        // load("lambdaman", 6, maxLambdaman);
+        // test3D(3, -1, 0);
+
+        // solve("3d", 2, 2);
 
         // String s = "S'%4}).$%8";
-        // String in = "";
-        // String s = "S" + Parser.convertString(in);
-        // String res = Submittor.submit(s);
-        // Parser.parse(res);
-
-        test3D(3, 4, 3);
-
+        // String s = "L# B. v# v# B$ L# SU";
+        // String s = "S" + Parser.convertString("echo efficiency");
+        // System.out.println(s);
+        // String s = "B$ L$ v$ B. SB%,,/ S}Q/2,$_";
+        String s = "B$ L# B. v# v# SU";
+        String res = Submittor.submit(s);
+        Parser.parse(res);
     }
 
+
+    public static void test3D(int i, int A, int B) throws InterruptedException{
+        try (BufferedReader bw = new BufferedReader(new InputStreamReader(Files.newInputStream(Paths.get(outputsPath + "3d" + "/" + i))))) {
+            String in;
+            String out;
+            String prog = "test 3d " + A + " " + B + "\n";
+            while ((in = bw.readLine()) != null) {
+                prog += in + "\n";
+            }
+            out = "S" + Parser.convertString(prog);
+            String res = Submittor.submit(out);
+            Parser.parse(res);
+            System.out.println("\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static String lambdify(String s) {
+        StringBuilder sb = new StringBuilder();
+        for (char ch : s.toCharArray()) {
+            int pos = (int) ch;
+            if (pos < 33) {
+                sb.append((char)(pos + 33));
+            } else {
+                sb.append(ch);
+            }
+        }
+        return sb.toString();
+    }
     public static void solve(String name, int start, int end) throws InterruptedException{
         for (int i = start; i <= end; ++i) {
             try (BufferedReader bw = new BufferedReader(new InputStreamReader(Files.newInputStream(Paths.get(outputsPath + name + "/" + i))))) {
-                String in = bw.readLine();
-                String out = "S" + Parser.convertString("solve " + name + i + " " + in);
+                String in;
+                String out;
+                if (name == "3d") {
+                    String prog = "solve " + name + i + "\n";
+                    while ((in = bw.readLine()) != null) {
+                        prog += in + "\n";
+                    }
+                    out = "S" + Parser.convertString(prog);
+                } else {
+                    in = bw.readLine();
+                    out = "S" + Parser.convertString("solve " + name + i + " " + in);
+                }
                 String res = Submittor.submit(out);
                 //Parser.parse(res);
                 System.out.println("\n");
