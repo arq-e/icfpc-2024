@@ -23,19 +23,20 @@ public class Main {
     static final int maxSpaceship = 25;
     static final int max3d = 12;
     public static void main(String[] args) throws IOException, InterruptedException {
-        load("3d", 1, max3d);
+        //load("3d", 1, max3d);
         // load_task("lambdaman");
         // load_task("spaceship");
         // solve("lambdaman", 1, 5);
         // solve("spaceship", 1, 10);
-        // load("spaceship", 1, maxSpaceship);
-        // load("lambdaman", 1, maxLambdaman);
+        //load("spaceship", 1, 1);
+        load("lambdaman", 1, 1);
 
         // String s = "S'%4}).$%8";
         // String in = "";
         // String s = "S" + Parser.convertString(in);
         // String res = Submittor.submit(s);
         // Parser.parse(res);
+
     }
 
     public static void solve(String name, int start, int end) throws InterruptedException{
@@ -56,8 +57,9 @@ public class Main {
     public static void load(String name, int start, int end) throws InterruptedException{
         for (int i = start; i <= end; ++i) {
             try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(Paths.get(inputsPath + name + "/" + i))))) {
-                String s = "S" + Parser.convertString("get " + name + i);                
-                String res = Submittor.submit(s);                
+                String s = Parser.convertString("get " + name + i);                
+                String res = Submittor.submit(s);  
+                System.out.println(Parser.parseString(res));              
                 bw.write(Parser.parseString(res));
             } catch (IOException e) {
                 e.printStackTrace();

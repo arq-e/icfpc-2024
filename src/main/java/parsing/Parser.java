@@ -37,6 +37,28 @@ public class Parser {
             char newC = (char)(dict.indexOf(ch) + 33);
             sb.append((char)(dict.indexOf(ch) + 33));
         }
-        return sb.toString();
+        return "S"+ sb.toString();
+    }
+
+    public static long parseInt(String s) {
+        long res = 0;
+        long base = 94;
+        for (char ch : s.substring(1).toCharArray()) {
+            res *= base;
+            res += (int)(ch - 33);
+        }
+        return res;
+    }
+
+    public static String convertInt(Long val) {
+        StringBuilder sb = new StringBuilder();
+        while (val > 0) {
+            long bas = val % 94;
+            sb.insert(0, (char) (bas + 33));
+            val -= bas;
+            val /= 94;
+        }
+
+        return "I" + sb.toString();
     }
 }
