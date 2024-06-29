@@ -1,12 +1,36 @@
 package evaluation;
 
+import java.util.List;
+import java.util.Map;
+
 import data.Type;
 import data.Value;
+import data.Variable;
 
 public class Binary {
     
-    public static Value perform(String op, Value x1, Value x2) {
+    public static Value perform(String op, Value x1, Value x2, List<Variable> variables) {
         Value res = null;
+
+        if (x1.getType() == Type.VARIABLE && variables != null) {
+            for (Variable var : variables) {
+                if (!var.isTaken() || x1.getInt() == var.getBounded()) {
+                    var.take(x1.getInt());
+                    x1.update(var.getValue());
+                    break;
+                }
+            }
+        }      
+        if (x2.getType() == Type.VARIABLE && variables != null) {
+            for (Variable var : variables) {
+                if (!var.isTaken() || x2.getInt() == var.getBounded()) {
+                    var.take(x2.getInt());
+                    x2.update(var.getValue());
+                    break;
+                }
+            }
+        }            
+        
         switch(op.charAt(1)) {
             case '+':
                 res = new Value(Type.INTEGER, sum(x1.getInt(), x2.getInt()));
@@ -110,6 +134,6 @@ public class Binary {
     }
 
     public static Value performBullShit(Value x, Value y) {
-        return y;
+        return x.getLambda().apply(y);
     } 
 }

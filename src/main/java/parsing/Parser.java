@@ -1,22 +1,21 @@
 package parsing;
 
-public class Parser {
-    static String dict = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`|~ \n";
-    
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
 
-    public static void parse(String s) {
-        String[] strs = s.split(" ");
-        for (String str : strs) {
-            switch(str.charAt(0)) {
-                case 'S':
-                    String res = parseString(str);
-                    System.out.println(res);
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
+import data.Lambda;
+import data.Type;
+import data.Value;
+import evaluation.Binary;
+import evaluation.Unary;
+
+public class Parser {
+    static final String dict = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`|~ \n";
+    final StringBuilder sb = new StringBuilder();
+    final Map<Long, Lambda> lambdas = new HashMap<>();
+    
 
     public static String parseString(String s) {
         StringBuilder sb = new StringBuilder();

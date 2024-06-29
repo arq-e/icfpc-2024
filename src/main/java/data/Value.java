@@ -29,6 +29,10 @@ public class Value {
         return type;
     }
 
+    public Object getValue() {
+        return value;
+    }
+
     public String getString() {
         return (String) value;
     }
@@ -39,6 +43,39 @@ public class Value {
 
     public Boolean getBoolean() {
         return (Boolean) value;
+    }
+
+    public Lambda getLambda() {
+        return (Lambda) value;
+    }
+
+    public void update(Value newValue) {
+        this.type = newValue.getType();
+        this.value = newValue.getValue();
+    }
+
+    public String toString() {
+        switch (this.type) {
+            case INTEGER:
+                return String.valueOf((Long)this.value);
+            case STRING:
+                return (String)this.value;
+            case BOOLEAN:
+                return String.valueOf((Boolean)this.value);
+            case VARIABLE:
+                return "x" + String.valueOf((Long)this.value);
+            case OPERATION:
+                String s = (String)this.value;
+                if (s.length() == 0) {
+                    return s;
+                } else {
+                    return s.substring(1);
+                }
+            case LAMBDA:
+                return "l" + String.valueOf((Long)this.value) + "->";            
+            default:
+                return null;
+        }        
     }
 
 }

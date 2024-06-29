@@ -1,20 +1,25 @@
 package evaluation;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import data.DataUnit;
 import data.Lambda;
+import data.OpType;
+import data.Operation;
 import data.Type;
 import data.Value;
-import parsing.Parser;
 
-public class Evaluator {
+public class Evaluator2 {
     static final String dict = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`|~ \n";
     final StringBuilder sb = new StringBuilder();
+    Deque<Operation> ops = new ArrayDeque<>();
+    final Map<Long, Operation> lambdas = new HashMap<>();
     
-    public String eval(String s) {
+    public String parse(String s) {
         Deque<String> dq = new ArrayDeque<>();
         for (String str : s.split(" ")) {
             dq.offerLast(str);
@@ -22,53 +27,53 @@ public class Evaluator {
 
         while (dq.size() > 0) {
             String str = dq.pollFirst();
-            Value val = decode(dq, str);
-            val.write(sb);
+            Operation op = parseOperation(dq, str);
+            ops.offerLast(op);
         }
+
+        sb.append(ops.peekFirst().write()).append("\n");
+        while (ops.size() > 0) {
+            sb.append(ops.pollFirst().eval(null).toString()).append("\n");
+        }
+
         return sb.toString();
     }
 
 
-    public Value applyUnaryOperation(Deque<String> dq, String str) {
+    public List<Operation> parseUnary(Deque<String> dq, String str) {
+        List<Operation> op = new ArrayList<>();
         String next = dq.pollFirst();
-        return Unary.perform(str, decode(dq, next));
+        op.add(parseOperation(dq, next));
+        return op;
     }
 
 
-    public Value applyBinaryOperation(Deque<String> dq, String str) {
-        if (str.charAt(1) != '$' ) {
-            Value first = decode(dq, dq.pollFirst());
-            Value second = decode(dq, dq.pollFirst());
-            return Binary.perform(str, first, second);
-        } else {
-            Lambda lambda = new Lambda();
-            while (dq.peek().charAt(0) == 'L') {
-                long val = parseInt(dq.pollFirst());
-                lambda.getParams().put(val, null);
-            }
-            return evalLambda(dq, lambda);
-        }
+    public List<Operation> parseBinary(Deque<String> dq, String str) {
+        List<Operation> op = new ArrayList<>();
+        String next = dq.pollFirst();
+        op.add(parseOperation(dq, next));
+        next = dq.pollFirst();
+        op.add(parseOperation(dq, next));            
+        return op;
 
     }
 
-    public Value evalIf(Deque<String> dq) {
-        Value condition = decode(dq, dq.pollFirst());
-        Value first = decode(dq, dq.pollFirst());
-        Value second = decode(dq, dq.pollFirst());
-        if (condition.getBoolean()) {
-            return first;
-        } else {
-            return second;
-        }
+    public List<Operation> parseIf(Deque<String> dq) {
+        List<Operation> op = new ArrayList<>();
+        String next = dq.pollFirst();
+        op.add(parseOperation(dq, next));
+        next = dq.pollFirst();
+        op.add(parseOperation(dq, next));      
+        next = dq.pollFirst();
+        op.add(parseOperation(dq, next));        
+        return op;
     }
 
-    public Value evalLambda(Deque<String> dq, Lambda lambda) {
-        return decode(dq, dq.pollFirst());
-    }
-
-    public Value assignLambda(Deque<String> dq) {
-        //return decode(dq, dq.pollFirst());
-        return null;
+    public List<Operation> parseLambda(Deque<String> dq, String str) {
+        List<Operation> op = new ArrayList<>();
+        String next = dq.pollFirst();
+        op.add(parseOperation(dq, next));
+        return op;
     }
 
     public static String parseString(String s) {
@@ -94,42 +99,40 @@ public class Evaluator {
         return res;
     }
 
-    public Value decode(Deque<String> dq, String str) {
-        Value res = null;
+    public Operation parseOperation(Deque<String> dq, String str) {
+        Operation res = null;
         switch(str.charAt(0)) {
             case 'S':
-                res = new Value(Type.STRING,  parseString(str));
+                res = new Operation(OpType.SELF, new Value(Type.STRING, parseString(str)),  null);
                 break;
             case 'T':
-                res = new Value(Type.BOOLEAN,  true);
+                res = new Operation(OpType.SELF, new Value(Type.BOOLEAN, true),  null);
                 break;
             case 'F':
-                res = new Value(Type.BOOLEAN,  false);
+                res = new Operation(OpType.SELF, new Value(Type.BOOLEAN, false),  null);
                 break;
             case 'I':
-                res = new Value(Type.INTEGER,  parseInt(str));
+                res = new Operation(OpType.SELF, new Value(Type.INTEGER, parseInt(str)),  null);
                 break;
             case 'U':
-                res = applyUnaryOperation(dq, str);
+                res = new Operation(OpType.UNARY, new Value(Type.STRING, str), parseUnary(dq, str));            
                 break;
             case 'B':
-                res = applyBinaryOperation(dq, str);
+                res = new Operation(OpType.BINARY, new Value(Type.OPERATION, str), parseBinary(dq, str));        
                 break;
             case '?':
-                res = evalIf(dq);
+                res = new Operation(OpType.TERNARY, new Value(Type.STRING, str), parseIf(dq));         
                 break;
             case 'L':
-                res = evalLambda(dq, null);
+                res = new Operation(OpType.LAMBDA, new Value(Type.LAMBDA, parseInt(str)), parseLambda(dq, str));              
                 break;     
             case 'v':
-                res = assignLambda(dq);
+                res = new Operation(OpType.SELF, new Value(Type.VARIABLE, parseInt(str)), null);             
                 break;
             default:
                 break;
         }
 
         return res;
-    }
-
-
+    }    
 }
