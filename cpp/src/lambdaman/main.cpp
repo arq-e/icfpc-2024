@@ -7,6 +7,11 @@ const int MAX_STEPS = 1000000; //TODO: ignore when compressing
 const vector<int> moves = {1, 0, -1, 0, 1};
 const vector<char> dirs = {'D', 'L', 'U', 'R'};
 
+// const vector<char> converted_dirs = {'>', 'F', 'O', 'L'};
+unordered_map<char, char> converted_dirs = {
+  {'D', '>'}, {'L', 'F'}, {'U', 'O'}, {'R', 'L'}
+};
+
 struct Pos {
   int x;
   int y;
@@ -69,8 +74,86 @@ struct LambdaMan {
     } while (path != "");
   }
 
+  string find_best_compression(int n, char dir) {
+    int size = n;
+    string header;
+    for (int i = 4; i <= n / 2; ++i) {
+      if (n % (2 * i) != 0) continue;
+
+      string tmp;
+      int steps = n / (2 * i);
+      for (int j = 0; j <= steps; ++j) {
+        tmp += "B$ L# ";
+      }
+      tmp += "S";
+      tmp.append(i, converted_dirs[dir]);
+      tmp += " v!";
+      if (tmp.size() < size) {
+        size = tmp.size();
+        header = tmp;
+      }
+    }
+    return header;
+  }
+
+  string convert(string path) {
+    string res;
+    for (char c: path) {
+      res.push_back(converted_dirs[c]);
+    }
+    return res;
+  }
+
+  string compress(string path) {
+    int l = 0;
+    int r = 0;
+    string tmp = "";
+    string cur = "";
+    bool first_time = true;
+    for (r = 1; r < path.size(); ++r) {
+      if (path[r] != path[l]) {
+        if (r-l >= 32) {
+          auto comp = find_best_compression(r - l, path[l]);
+          if (!comp.empty()) {
+            if (first_time) {
+              first_time = false;
+              if (cur.size()) {
+                tmp += "B. S" + convert(cur);
+              }
+              tmp += " B$ L# B. v# v# " + comp.substr(6);
+            } else {
+              if (cur.size()) {
+                tmp += "B. S" + convert(cur) + " ";
+              }
+              tmp += comp;
+            }
+          } else {
+            cur += path.substr(l, r - l);
+          }
+        } else {
+          cur += path.substr(l, r - l);
+        }
+        l = r;
+      }
+    }
+
+    cur += path.substr(l, r - l - 1);
+    if (cur.size()) {
+      tmp = "B. " + tmp;
+      if (!first_time) {
+        tmp += " S";
+      }
+      tmp += convert(cur);
+    }
+    return tmp;
+  }
+
   string solve() {
     solve_by_closest_dot();
+    string compressed = compress(output);
+    if (compressed.size() < output.size()) {
+      output = compressed;
+    }
     return output;
   }
 
@@ -134,7 +217,7 @@ struct LambdaMan {
 };
 
 void solve_all() {
-  for (int i = 1; i <= 5; ++i) {
+  for (int i = 11; i <= 11; ++i) {
     string input = "../inputs/lambdaman/" + to_string(i);
     string output = "../outputs/lambdaman/" + to_string(i);
     string score_path = "../scores/lambdaman/" + to_string(i);
@@ -148,23 +231,29 @@ void solve_all() {
     ifs.close();
 
 
-    string ans = hero.solve();
+    // string ans = hero.solve();
+    string test;
+    test.push_back('D');
+    test.append(32, 'U');
+    test.push_back('D');
+    cout << test << endl;
+    cout << hero.compress(test) << endl;
 
-    int score = ans.size();
+    // int score = ans.size();
 
-    if (score < bestScore) {
-      cout << "Task " << i << " has new best score: " << score << ", previous best was: " << bestScore << endl;
-      bestScore = score;
-      ofstream ofs(output);
-      ofs << ans;
-      ofs.close();
+    // if (score < bestScore) {
+    //   cout << "Task " << i << " has new best score: " << score << ", previous best was: " << bestScore << endl;
+    //   bestScore = score;
+    //   ofstream ofs(output);
+    //   ofs << ans;
+    //   ofs.close();
 
-      ofstream score_ofs(score_path);
-      score_ofs << bestScore;
-      score_ofs.close();
-    } else {
-      cout << "Task " << i << " " << score << "/" << bestScore << endl;
-    }
+    //   ofstream score_ofs(score_path);
+    //   score_ofs << bestScore;
+    //   score_ofs.close();
+    // } else {
+    //   cout << "Task " << i << " " << score << "/" << bestScore << endl;
+    // }
   }
 }
 
