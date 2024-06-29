@@ -25,6 +25,7 @@ struct LambdaMan {
   string output;
   vector<vector<char>> grid;
   ifstream &in;
+  bool has_dead_ends = true;
 
   LambdaMan(ifstream &ifs) : in(ifs) {
     string s;
@@ -74,6 +75,16 @@ struct LambdaMan {
     } while (path != "");
   }
 
+  void solve_by_closest_dead_end() {
+    string path;
+    do {
+      path = build_path_to_closest_dead_end();
+      walk(path);
+      output += path;
+    } while (path != "");
+  }
+
+#if 0
   string find_best_compression(int n, char dir) {
     int size = n;
     string header;
@@ -147,13 +158,16 @@ struct LambdaMan {
     }
     return tmp;
   }
+#endif
 
   string solve() {
-    solve_by_closest_dot();
+    solve_by_closest_dead_end();
+#if 0
     string compressed = compress(output);
     if (compressed.size() < output.size()) {
       output = compressed;
     }
+#endif
     return output;
   }
 
@@ -214,10 +228,51 @@ struct LambdaMan {
     }
     return "";
   }
+
+  bool is_dead_end(int tx, int ty) {
+    if (grid[tx][ty] != '.') {
+      return false; // ignore walls
+    }
+    int wall_count = 4;
+    for (int i = 0; i < 4; ++i) {
+      int nx = tx + moves[i];
+      int ny = ty + moves[i + 1];
+      if (nx >= 0 && nx < grid.size() && ny >= 0 && ny < grid[0].size() && grid[nx][ny] == '.') {
+        --wall_count;
+      }
+    }
+    return wall_count >= 3;
+  }
+
+  string build_path_to_closest_dead_end() {
+    if (has_dead_ends) {
+      queue<Pos> q;
+      q.push({x, y, ""});
+      set<pair<int, int>> visited;
+      visited.insert({x, y});
+      while (!q.empty()) {
+        Pos p = q.front();
+        q.pop();
+        if (is_dead_end(p.x, p.y)) {
+          return p.path;
+        }
+        for (int i = 0; i < 4; ++i) {
+          int nx = p.x + moves[i];
+          int ny = p.y + moves[i + 1];
+          if (nx >= 0 && nx < grid.size() && ny >= 0 && ny < grid[0].size() && grid[nx][ny] != '#' && !visited.contains({nx, ny})) {
+            q.push({nx, ny, p.path + dirs[i]});
+            visited.insert({nx, ny});
+          }
+        }
+      }
+    }
+    has_dead_ends = false;
+    return build_shortest_path_to_dot();
+  }
 };
 
 void solve_all() {
-  for (int i = 11; i <= 11; ++i) {
+  for (int i = 1; i <= 21; ++i) {
     string input = "../inputs/lambdaman/" + to_string(i);
     string output = "../outputs/lambdaman/" + to_string(i);
     string score_path = "../scores/lambdaman/" + to_string(i);
@@ -227,33 +282,39 @@ void solve_all() {
     score_ifs.close();
 
     ifstream ifs(input);
+    if (!ifs) {
+      cout << "File not found: " << input << endl;
+      continue;
+    }
     LambdaMan hero(ifs);
     ifs.close();
 
 
-    // string ans = hero.solve();
+    string ans = hero.solve();
+#if 0
     string test;
     test.push_back('D');
     test.append(32, 'U');
     test.push_back('D');
     cout << test << endl;
     cout << hero.compress(test) << endl;
+  #endif
 
-    // int score = ans.size();
+    int score = ans.size();
 
-    // if (score < bestScore) {
-    //   cout << "Task " << i << " has new best score: " << score << ", previous best was: " << bestScore << endl;
-    //   bestScore = score;
-    //   ofstream ofs(output);
-    //   ofs << ans;
-    //   ofs.close();
+    if (score < bestScore) {
+      cout << "Task " << i << " has new best score: " << score << ", previous best was: " << bestScore << endl;
+      bestScore = score;
+      ofstream ofs(output);
+      ofs << ans;
+      ofs.close();
 
-    //   ofstream score_ofs(score_path);
-    //   score_ofs << bestScore;
-    //   score_ofs.close();
-    // } else {
-    //   cout << "Task " << i << " " << score << "/" << bestScore << endl;
-    // }
+      ofstream score_ofs(score_path);
+      score_ofs << bestScore;
+      score_ofs.close();
+    } else {
+      cout << "Task " << i << " " << score << "/" << bestScore << endl;
+    }
   }
 }
 
