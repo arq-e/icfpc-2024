@@ -72,7 +72,7 @@ public class Binary {
                 res = new Value(Type.STRING, dropFirst(x1.getInt(), x2.getString())); 
                 break;
             case '$':
-                res = performBullShit(x1, x2);   
+                //res = performBullShit(x1, x2);   
                 break;           
             default:
                 break;  
@@ -133,7 +133,7 @@ public class Binary {
         return s.substring((int)idx);
     }
 
-    public static Value performBullShit(Value x, Value y) {
+    /*public static Value performBullShit(Value x, Value y) {
         return x.getLambda().apply(y);
-    } 
+    } */
 }

@@ -45,10 +45,6 @@ public class Value {
         return (Boolean) value;
     }
 
-    public Lambda getLambda() {
-        return (Lambda) value;
-    }
-
     public void update(Value newValue) {
         this.type = newValue.getType();
         this.value = newValue.getValue();

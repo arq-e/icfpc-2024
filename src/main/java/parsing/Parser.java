@@ -5,7 +5,6 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 
-import data.Lambda;
 import data.Type;
 import data.Value;
 import evaluation.Binary;
@@ -13,8 +12,6 @@ import evaluation.Unary;
 
 public class Parser {
     static final String dict = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`|~ \n";
-    final StringBuilder sb = new StringBuilder();
-    final Map<Long, Lambda> lambdas = new HashMap<>();
     
 
     public static String parseString(String s) {

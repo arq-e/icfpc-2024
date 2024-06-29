@@ -7,13 +7,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import data.Lambda;
 import data.OpType;
 import data.Operation;
 import data.Type;
 import data.Value;
 
-public class Evaluator2 {
+public class Evaluator {
     static final String dict = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`|~ \n";
     final StringBuilder sb = new StringBuilder();
     Deque<Operation> ops = new ArrayDeque<>();
@@ -32,9 +31,9 @@ public class Evaluator2 {
         }
 
         sb.append(ops.peekFirst().write()).append("\n");
-        while (ops.size() > 0) {
-            sb.append(ops.pollFirst().eval(null).toString()).append("\n");
-        }
+        //while (ops.size() > 0) {
+        //    sb.append(ops.pollFirst().eval(null).toString()).append("\n");
+        //}
 
         return sb.toString();
     }
