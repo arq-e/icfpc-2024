@@ -98,7 +98,8 @@ struct SpaceShip {
   }
 
   void solve_basic_with_nearest() {
-    while (auto id = pick_nearest_id() != -1) {
+    while (targets.size() > 0) {
+      int id = pick_nearest_id();
       auto target = targets[id];
       basic_move(targets[id]);
       targets.erase(targets.begin() + id);
@@ -123,6 +124,7 @@ struct SpaceShip {
 
   string solve() {
     solve_basic_with_nearest();
+    // solve_basic();
     return output;
   }
 
@@ -149,7 +151,7 @@ struct SpaceShip {
 };
 
 void solve_all() {
-  for (int i = 1; i <= 10; ++i) {
+  for (int i = 1; i <= 25; ++i) {
     string input = "../inputs/spaceship/" + to_string(i);
     string output = "../outputs/spaceship/" + to_string(i);
     string score_path = "../scores/spaceship/" + to_string(i);
