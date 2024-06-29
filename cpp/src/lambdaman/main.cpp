@@ -41,7 +41,7 @@ struct LambdaMan {
     }
   }
 
-  string solve() {
+  void solve_by_order() {
     bool changed = true;
     while (changed) {
       changed = false;
@@ -57,6 +57,20 @@ struct LambdaMan {
         }
       }
     }
+  }
+
+  void solve_by_closest_dot() {
+    string path;
+    do {
+      path = build_shortest_path_to_dot();
+      // cout << path << endl;
+      walk(path);
+      output += path;
+    } while (path != "");
+  }
+
+  string solve() {
+    solve_by_closest_dot();
     return output;
   }
 
@@ -81,6 +95,29 @@ struct LambdaMan {
       Pos p = q.front();
       q.pop();
       if (p.x == tx && p.y == ty) {
+        return p.path;
+      }
+      for (int i = 0; i < 4; ++i) {
+        int nx = p.x + moves[i];
+        int ny = p.y + moves[i + 1];
+        if (nx >= 0 && nx < grid.size() && ny >= 0 && ny < grid[0].size() && grid[nx][ny] != '#' && !visited.contains({nx, ny})) {
+          q.push({nx, ny, p.path + dirs[i]});
+          visited.insert({nx, ny});
+        }
+      }
+    }
+    return "";
+  }
+
+  string build_shortest_path_to_dot() {
+    queue<Pos> q;
+    q.push({x, y, ""});
+    set<pair<int, int>> visited;
+    visited.insert({x, y});
+    while (!q.empty()) {
+      Pos p = q.front();
+      q.pop();
+      if (grid[p.x][p.y] == '.') {
         return p.path;
       }
       for (int i = 0; i < 4; ++i) {
