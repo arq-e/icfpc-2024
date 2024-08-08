@@ -160,6 +160,28 @@ struct SpaceShip {
     return pattern;
   }
 
+  vector<int> shortest_pattern_for_one(int dx, int speed) {
+    if (dx == 0 && speed == 0) {
+      return {};
+    }
+    vector<int> pattern;
+    if (sgn(dx) == sgn(speed)) {
+      
+    }
+    if (speed == 0) {
+      
+    }
+  }
+
+  static vector<vector<int>> calc_shortest_movement_pattern(const pair<int, int> &target, const pair<int, int> &pos, const pair<int, int> &velocity) {
+    int diff_x = target.first - pos.first;
+    int diff_y = target.second - pos.second;
+    int dist = abs(diff_x) + abs(diff_y);
+    if (dist == 0) {
+      return {};
+    }
+  }
+
   void solve_basic() {
     for (auto target : targets) {
       basic_move(target);
@@ -179,8 +201,10 @@ struct SpaceShip {
   }
 
   void solve_with_increment_for_nearest() {
+    srand(time(0));
     while (targets.size() > 0) {
       auto t = pick_nearest();
+      // auto t = pick_nearest_with_random_bonus(50);
       if (!t.has_value()) {
         success = false;
         return;
@@ -207,6 +231,9 @@ struct SpaceShip {
 
   optional<pair<int, int>> pick_nearest() {
     return pick_best([this](int tx, int ty) { return -max(abs(tx-x), abs(ty-y)); });
+  }
+  optional<pair<int, int>> pick_nearest_with_random_bonus(int max_bonus = 0) {
+    return pick_best([this, max_bonus](int tx, int ty) { return -max(abs(tx-x), abs(ty-y)) + (rand() % max_bonus); });
   }
   optional<pair<int, int>> pick_jumpable() {
     return pick_best([this](int tx, int ty) { return can_jump({tx, ty}) ? -max(abs(tx-x), abs(ty-y)) : INT_MIN; });
@@ -300,7 +327,7 @@ void calc_increment_pattern_test() {
 
 
 int main(int argc, char **argv) {
-  solve_all(1, 25);
+  solve_all(1, 24);
   // calc_increment_pattern_test();
   return 0;
 }

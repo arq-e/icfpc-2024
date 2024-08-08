@@ -4,6 +4,8 @@
 using namespace std;
 
 const int MAX_STEPS = 1000000; //TODO: ignore when compressing
+const int LONG_STRING_MIN_LEN = 70;
+const bool USE_COMPRESSION = true;
 const vector<int> moves = {1, 0, -1, 0, 1};
 const vector<char> dirs = {'D', 'L', 'U', 'R'};
 
@@ -26,6 +28,7 @@ struct LambdaMan {
   vector<vector<char>> grid;
   ifstream &in;
   bool has_dead_ends = true;
+  size_t total_dots = 0;
 
   LambdaMan(ifstream &ifs) : in(ifs) {
     string s;
@@ -33,6 +36,7 @@ struct LambdaMan {
       grid.push_back(vector<char>(s.begin(), s.end()));
     }
     set_start_pos();
+    count_total_dots();
   }
 
   void set_start_pos() {
@@ -42,6 +46,16 @@ struct LambdaMan {
           x = i;
           y = j;
           return;
+        }
+      }
+    }
+  }
+
+  void count_total_dots() {
+    for (int i = 0; i < grid.size(); ++i) {
+      for (int j = 0; j < grid[i].size(); ++j) {
+        if (grid[i][j] == '.') {
+          ++total_dots;
         }
       }
     }
@@ -65,6 +79,34 @@ struct LambdaMan {
     }
   }
 
+  void solve_by_closest_dot_in_direction(char start_dir) {
+    while(true) {
+      string path;
+      int next_x = x;
+      int next_y = y;
+      switch(start_dir) {
+        case 'L': next_y -= 1; break;
+        case 'R': next_y += 1; break;
+        case 'U': next_x -= 1; break;
+        case 'D': next_x += 1; break;
+        default: break;
+      }
+      if (0 <= next_x && next_x < grid.size() && 0 <= next_y && next_y < grid[0].size() && grid[next_x][next_y] == '.') {
+        path.push_back(start_dir);
+        walk(path);
+        output += path;
+      } else {
+        path = build_shortest_path_to_dot();
+        if (path.size() == 0) {
+          break;
+        }
+        walk(path);
+        output += path;
+        start_dir = path.back();
+      }
+    };
+  }
+
   void solve_by_closest_dot() {
     string path;
     do {
@@ -84,8 +126,8 @@ struct LambdaMan {
     } while (path != "");
   }
 
-#if 0
-  string find_best_compression(int n, char dir) {
+
+  static string find_best_compression(int n, char dir) {
     int size = n;
     string header;
     for (int i = 4; i <= n / 2; ++i) {
@@ -94,11 +136,12 @@ struct LambdaMan {
       string tmp;
       int steps = n / (2 * i);
       for (int j = 0; j <= steps; ++j) {
-        tmp += "B$ L# ";
+        tmp += "B$ L# B. v# v# ";
       }
       tmp += "S";
       tmp.append(i, converted_dirs[dir]);
       tmp += " v!";
+      // cout << n << " " << tmp.size() << " " << tmp << endl;
       if (tmp.size() < size) {
         size = tmp.size();
         header = tmp;
@@ -107,7 +150,7 @@ struct LambdaMan {
     return header;
   }
 
-  string convert(string path) {
+  static string convert(string path) {
     string res;
     for (char c: path) {
       res.push_back(converted_dirs[c]);
@@ -115,29 +158,22 @@ struct LambdaMan {
     return res;
   }
 
-  string compress(string path) {
+  static string compress(string path) {
     int l = 0;
     int r = 0;
     string tmp = "";
     string cur = "";
-    bool first_time = true;
+    bool used = false;
     for (r = 1; r < path.size(); ++r) {
       if (path[r] != path[l]) {
-        if (r-l >= 32) {
+        if (r-l >= LONG_STRING_MIN_LEN) {
           auto comp = find_best_compression(r - l, path[l]);
           if (!comp.empty()) {
-            if (first_time) {
-              first_time = false;
-              if (cur.size()) {
-                tmp += "B. S" + convert(cur);
-              }
-              tmp += " B$ L# B. v# v# " + comp.substr(6);
-            } else {
-              if (cur.size()) {
-                tmp += "B. S" + convert(cur) + " ";
-              }
-              tmp += comp;
+            used = true;
+            if (cur.size()) {
+              tmp += "B. S" + convert(cur) + " ";
             }
+            tmp += comp;
           } else {
             cur += path.substr(l, r - l);
           }
@@ -149,25 +185,21 @@ struct LambdaMan {
     }
 
     cur += path.substr(l, r - l - 1);
-    if (cur.size()) {
-      tmp = "B. " + tmp;
-      if (!first_time) {
-        tmp += " S";
-      }
+    if (cur.size() && used) {
+      tmp = "B. " + tmp + " S";
       tmp += convert(cur);
     }
     return tmp;
   }
-#endif
 
   string solve() {
-    solve_by_closest_dead_end();
-#if 0
-    string compressed = compress(output);
-    if (compressed.size() < output.size()) {
-      output = compressed;
-    }
-#endif
+    solve_by_closest_dot_in_direction('D');
+    if (USE_COMPRESSION) {
+        string compressed = compress(output);
+        if (0 < compressed.size() && compressed.size() < output.size()) {
+          output = compressed;
+        }
+    } 
     return output;
   }
 
@@ -291,18 +323,9 @@ void solve_all() {
 
 
     string ans = hero.solve();
-#if 0
-    string test;
-    test.push_back('D');
-    test.append(32, 'U');
-    test.push_back('D');
-    cout << test << endl;
-    cout << hero.compress(test) << endl;
-  #endif
-
     int score = ans.size();
 
-    if (score < bestScore) {
+    if (0 < score && score < bestScore) {
       cout << "Task " << i << " has new best score: " << score << ", previous best was: " << bestScore << endl;
       bestScore = score;
       ofstream ofs(output);
@@ -313,16 +336,37 @@ void solve_all() {
       score_ofs << bestScore;
       score_ofs.close();
     } else {
-      cout << "Task " << i << " " << score << "/" << bestScore << endl;
+      int l = 0;
+      int long_strings = 0;
+      for (int r = 1; r < score; ++r) {
+        if (ans[r] != ans[l]) {
+          if (r - l >= LONG_STRING_MIN_LEN) {
+            ++long_strings;
+          }
+          l = r;
+        }
+      }
+      cout << "Task " << i << " " << score << "/" << bestScore << ", total_dots = " << hero.total_dots << 
+        ", long_strings = " << long_strings << endl;
     }
+
   }
+}
+
+void test_compress() {
+  string test;
+  test.push_back('D');
+  test.append(80, 'U');
+  test.push_back('D');
+  cout << test << endl;
+  cout << LambdaMan::compress(test) << endl;
 }
 
 
 int main(int argc, char **argv) {
   // ios::sync_with_stdio(false);
   // cin.tie(0);
-
+  // test_compress();
   solve_all();
   return 0;
 }

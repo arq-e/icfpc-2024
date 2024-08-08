@@ -94,6 +94,10 @@ public class Main {
                         prog += in + "\n";
                     }
                     out = Parser.convertString(prog);
+                } else if (name == "lambdaman" && i == 6) {
+                    in = "B$ B$ L\" B$ L\" B$ L# B$ v\" B$ v# v# L# B$ v\" B$ v# v# L$ L# ? B= v# I\" v\" B. v\" B$ v$ B- v# I\" SL I#,";
+                    out = "B. " + Parser.convertString("solve " + name + i+ " ") + " " + in;
+                    System.out.println(out);
                 } else {
                     in = bw.readLine();
                     out = Parser.convertString("solve " + name + i + " " + in);
