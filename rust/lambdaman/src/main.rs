@@ -1,6 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 use eframe::egui;
+use std::time::{Duration, Instant};
+use std::thread;
 
 pub mod lambdaman;
 use lambdaman::Lambdaman;
@@ -62,9 +64,7 @@ fn main() {
 struct Visualizer {
     data: Lambdaman,
     map_id: usize,
-    time_to_next_tick: std::time::Duration,
-    #[serde(skip)]
-    last_tick: std::time::Instant
+    min_step_duration: Duration,
 }
 
 impl Visualizer {
@@ -81,8 +81,8 @@ impl Default for Visualizer {
     fn default() -> Self {
         Self { data: Lambdaman::new(1),
             map_id: 1,
-            time_to_next_tick: std::time::Duration::from_millis(100),
-            last_tick: std::time::Instant::now() }
+            min_step_duration: Duration::from_millis(100),
+        }
     }
 }
 
@@ -92,12 +92,13 @@ impl eframe::App for Visualizer {
     }
 
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        let now = std::time::Instant::now();
+        ctx.request_repaint_after(self.min_step_duration);
 
-        if now - self.last_tick > self.time_to_next_tick {
-            self.last_tick = now;
-            self.data.tick();
-            ctx.request_repaint();
+        let now = Instant::now();
+        self.data.tick();
+        let elapsed = now.elapsed();
+        if elapsed < self.min_step_duration {
+            thread::sleep(self.min_step_duration - elapsed);
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {
